@@ -35,6 +35,3 @@ void UNewActorComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	// ...
 }
 
-
-
-UNewActorComponent*::getPlayer(UNewActorComponent* player) { return player; };
