@@ -5,7 +5,7 @@
 #include "defaultCamera.h"
 
 
-AdefaultCamera* camera;
+
 
 // Sets default values for this component's properties
 UNewActorComponent::UNewActorComponent()
@@ -21,7 +21,7 @@ UNewActorComponent::UNewActorComponent()
 void UNewActorComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	camera->getCamera(camera);
+	
 	
 	
 }
