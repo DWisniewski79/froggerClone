@@ -43,8 +43,9 @@ public:
 	int STATE = IDLE;
 	bool bNewState = true;
 
-	int facing = 1;
+	int Facing = 1;
 	float inputThreshold = 0.4;
+	FVector CurrentVelocity;
 	/*End State*/
 
 	// Sets default values for this character's properties
