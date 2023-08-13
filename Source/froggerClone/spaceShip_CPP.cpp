@@ -8,6 +8,7 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
+#include <string>
 
 FName AspaceShip_CPP::SpriteComponentName(TEXT("Sprite0"));
 // Sets default values
@@ -29,6 +30,7 @@ AspaceShip_CPP::AspaceShip_CPP(const FObjectInitializer& ObjectInitializer)
 		Sprite->SetCollisionProfileName(CollisionProfileName);
 		Sprite->SetGenerateOverlapEvents(false);
 		Sprite->SetFlipbook(IdleAnim);
+		bSimGravityDisabled = true;
 	}
 
 	//Set up Class' components
@@ -36,7 +38,8 @@ AspaceShip_CPP::AspaceShip_CPP(const FObjectInitializer& ObjectInitializer)
 	RotComp->SetupAttachment(RootComponent);
 	
 	GetCharacterMovement()->bConstrainToPlane = true;
-	GetCharacterMovement()->SetPlaneConstraintNormal(FVector(-1.0f, 0.0f, 0.0f));
+	GetCharacterMovement()->SetPlaneConstraintNormal(FVector(0.0f, 0.0f, -1.0f));
+	
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->bUseFlatBaseForFloorChecks = true;
 	bUseControllerRotationPitch = false;
@@ -57,6 +60,16 @@ void AspaceShip_CPP::BeginPlay()
 void AspaceShip_CPP::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	// Handle movement based on our "Horizontal" and "Vertical" axes
+	{
+		if (!CurrentVelocity.IsZero())
+		{
+			FVector NewLocation = GetActorLocation() + CurrentVelocity;
+			SetActorLocation(NewLocation);
+			CurrentVelocity.Set(0.0f,0.0f,0.0f);
+		}
+	}
 
 }
 
@@ -88,24 +101,78 @@ void AspaceShip_CPP::HorizontalMovement(float Value)
 
 	if ((right && !left) || (!right && left))
 	{
-		Facing = 1;
+		if (right)
+		{
+			Facing = 1;
+		}
+		if (left)
+		{
+			Facing = -1;
+		}
+		UE_LOG(LogTemp, Warning, TEXT("Value: %f"), Value);
+		UE_LOG(LogTemp, Warning, TEXT("Facing: %f"), Value);
+		CurrentVelocity.Set(Value, 0.0f, 0.0f);
+		AddMovementInput(CurrentVelocity, Facing);
+		FString shipLocation = GetActorLocation().ToString();
+		UE_LOG(LogTemp, Warning, TEXT("Actor location: %s"), *shipLocation);
 	}
+	
 
-	if (left)
-	{
-		Facing = -1;
-	}
-	AddMovementInput(FVector(1.0f, 0.0f, 0.0f), Facing);
+	
 	UE_LOG(LogTemp, Warning, TEXT("movementinput received"))
-		int count = 0;
-	UE_LOG(LogTemp, Warning, TEXT("check to see if this is called without input %d"), count);
-	count++;
 }
 
 void AspaceShip_CPP::VerticalMovement(float Value)
 {
-	// Move at 10 units per second forward or backward
-	CurrentVelocity.Y = FMath::Clamp(Value, -1.0f, 1.0f) * 10.0f;
+
+	if (Value == 0.0f)
+	{
+		return;
+	}
+
+	bool down = false;
+	bool up = false;
+
+	if (Value > inputThreshold)
+	{
+		up = true;
+		UE_LOG(LogTemp, Warning, TEXT("value for up has been pressed"));
+	}
+	if (Value < -inputThreshold)
+	{
+		down = true;
+		
+	}
+
+	if ((up && !down) || (!up && down))
+	{
+		if (up)
+		{
+			Facing = 1;
+		}
+		if (down)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("value for down has been pressed"));
+			Facing = -1;
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("Value: %f"), Value);
+		UE_LOG(LogTemp, Warning, TEXT("Facing: %f"), Value);
+		UE_LOG(LogTemp, Warning, TEXT("CurrentVelocity value: %s"), *CurrentVelocity.ToString());
+		
+		CurrentVelocity.Set(0.0f, Value, 0.0f);
+		AddMovementInput(CurrentVelocity, Facing);
+		
+		
+
+		FString shipLocation = GetActorLocation().ToString();
+		UE_LOG(LogTemp, Warning, TEXT("Actor location: %s"), *shipLocation);
+	}
+}
+
+void AspaceShip_CPP::StopMovement()
+{
+	CurrentVelocity.Set(0.0f, 0.0f, 0.0f);
 }
 
 // Called to bind functionality to input
@@ -117,5 +184,7 @@ void AspaceShip_CPP::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 	PlayerInputComponent->BindAxis("horizontal", this, &AspaceShip_CPP::HorizontalMovement);
 	PlayerInputComponent->BindAxis("vertical", this, &AspaceShip_CPP::VerticalMovement);
+
+
 }
 

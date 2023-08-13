@@ -63,6 +63,7 @@ public:
 	void UpdateStates();
 	void HorizontalMovement(float Value);
 	void VerticalMovement(float Value);
+	void StopMovement();
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
